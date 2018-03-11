@@ -1,0 +1,136 @@
+<html>
+<head>
+  <title>Todo App</title>
+  <meta charset="utf-8">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width">
+  <link rel="stylesheet" href="style.css" type="text/css" media="screen"
+        charset="utf-8">
+</head>
+<body>
+<div id="root">
+  <h1>To do list</h1>
+  <form id="taskForm">
+    <label for="addInput">
+      <span class="txt">할일</span>
+      <input name="task" type="text" id="addInput" title="할일입력">
+    </label>
+    <button type="submit">+</button>
+  </form>
+  <div id="wrap">
+    <div>
+      <span class="tit">미완료</span>
+      <ul id="pending" class="list"></ul>
+    </div>
+    <div>
+      <span class="tit">완료</span>
+      <ul id="completed" class="list"></ul>
+    </div>
+  </div>
+</div>
+<script>
+  const initialTasks = [
+    {
+      id: '0',
+      todo: 'Todo 0',
+      complete: false,
+    },
+    {
+      id: '1',
+      todo: 'Todo 1',
+      complete: true,
+    }
+  ];
+  
+  new class {
+    constructor() {
+      this.form = document.getElementById('taskForm');
+      this.form.onsubmit = this.addTask.bind(this);
+      this.addInput = document.getElementById('addInput');
+      this.pendingTodosHolder = document.getElementById('pending');
+      this.completedTodosHolder = document.getElementById('completed');
+      this.tasks = [...initialTasks];
+    }
+    createLiElement(task) {
+      const li = document.createElement("li");
+      const checkBox = document.createElement("input");
+      const span = document.createElement("span");
+      const deleteBtn = document.createElement("button");
+      
+      checkBox.type = "checkbox";
+      checkBox.id = task.id;
+      checkBox.checked = task.complete;
+      checkBox.onchange = this.toggleCheck.bind(this);
+      span.innerText = task.todo;
+      deleteBtn.innerText = 'X';
+      deleteBtn.onclick = this.deleteTask.bind(this, task.id);
+      
+      li.appendChild(checkBox);
+      li.appendChild(span);
+      li.appendChild(deleteBtn);
+      return li;
+    }
+    addTask(e) {
+      e.preventDefault();
+      const value = e.target.task.value;
+      if (value) {
+        this.tasks.push({
+          id: String(Date.now()),
+          todo: value,
+          complete: false,
+        });
+        this.addInput.value = '';
+        this.addInput.focus();
+        this.render();
+      }
+    }
+    toggleCheck(e) {
+      const id = e.target.id;
+      const index = this.tasks.findIndex((task) => {
+        return task.id === id;
+      });
+      
+      if (index !== -1) {
+        const task = {
+          ...this.tasks[index],
+          complete: !this.tasks[index].complete
+        };
+        this.tasks.splice(index, 1);
+        this.tasks.push(task);
+        this.render();
+      }
+    }
+    deleteTask(id) {
+      const index = this.tasks.findIndex((task) => {
+        return task.id === id;
+      });
+      if (index !== -1) {
+        this.tasks.splice(index, 1);
+        this.render();
+      }
+    }
+    cleanNodeList() {
+      while (this.pendingTodosHolder.firstChild) {
+        this.pendingTodosHolder.removeChild(this.pendingTodosHolder.firstChild);
+      }
+  
+      while (this.completedTodosHolder.firstChild) {
+        this.completedTodosHolder.removeChild(this.completedTodosHolder.firstChild);
+      }
+    }
+    render() {
+      this.cleanNodeList();
+      const pendingList = this.tasks.filter((task) => !task.complete);
+      const completeList = this.tasks.filter((task) => task.complete);
+      pendingList.forEach((task) => {
+        const li = this.createLiElement(task);
+        this.pendingTodosHolder.appendChild(li);
+      });
+      completeList.forEach((task) => {
+        const li = this.createLiElement(task);
+        this.completedTodosHolder.appendChild(li);
+      });
+    }
+  }().render();
+</script>
+</body>
+</html>
